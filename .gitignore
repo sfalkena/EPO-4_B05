@@ -1,0 +1,6 @@
+# Matlab autosave.
+*.asv
+
+# Other
+desktop.ini
+
