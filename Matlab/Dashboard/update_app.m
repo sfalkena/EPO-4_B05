@@ -1,4 +1,4 @@
-function [index] = update_app(d_l, d_r, direction, motorspeed, index)
+function update_app(d_l, d_r, direction, motorspeed)
 global index_log
 index_log = index_log + 1;
 
