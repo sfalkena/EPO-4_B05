@@ -1,4 +1,4 @@
-start_app()
+function stopAtDistance(stop_distance)
 checkDistance();
 count = 0;
 EPOCommunications('transmit','M165');
@@ -7,7 +7,7 @@ while (count < 1)
     d=zeros(1,2);
     [d_l, d_r, ~, ~] = checkDistance();
     minimum = min(d_l, d_r);
-    if(minimum < 200)
+    if(minimum < stop_distance)
         count = count+1;
     else
         count = 0;
@@ -29,3 +29,4 @@ pause(2)
 
 EPOCommunications('transmit','M150');
 checkDistance();
+end
