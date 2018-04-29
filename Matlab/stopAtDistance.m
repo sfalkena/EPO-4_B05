@@ -1,14 +1,14 @@
-global d_l_log d_r_log stop_distance
+global d_l_log d_r_log stop_distance t
 
 EPOCommunications('transmit','M165');
 
 %Intitialize all variables
-d=zeros(1,2);
 d = [d_l_log(end), d_r_log(end)];
 maximum=max(d(1),d(2));
 Speed=diff(d_l_log(end))/diff(t(end)); %speed: 0-5.56 m/s
 brake_distance = stop_distance;
 
+%determine when to brake
 while(maximum > brake_distance)
     d = [d_l_log(end), d_r_log(end)];
     maximum=max(d(1),d(2));
