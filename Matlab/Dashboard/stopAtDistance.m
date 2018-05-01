@@ -22,12 +22,4 @@ pause(0.5)
 
 EPOCommunications('transmit','M150');
 checkSensors();
-pause(1)
-
-EPOCommunications('transmit','M135');
-checkSensors();
-pause(2)
-
-EPOCommunications('transmit','M150');
-checkSensors();
 end
