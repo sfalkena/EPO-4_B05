@@ -1,3 +1,4 @@
+function stopAtDistance()
 global d_l_log d_r_log stop_distance t
 
 EPOCommunications('transmit','M165');
@@ -25,3 +26,4 @@ end
 EPOCommunications('transmit','M135');
 pause(Speed/4);
 EPOCommunications('transmit','M150');
+end
