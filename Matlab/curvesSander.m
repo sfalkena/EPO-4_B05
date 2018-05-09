@@ -16,15 +16,38 @@ dx=diff(d);
 dt=diff(t);
 v=dx./dt;
 v=transpose(smooth(v));
+v=transpose(smooth(v));
+v=transpose(smooth(v));
 
 v_acc = v(1:19);
 t_acc = t(1:19)-t(1);
 d_acc = d(1:19);
 
-v_dec = v(19:end-3);
-t_dec = t(19:end-4)-t(19);
-d_dec = d(19:end-4)-d(end-4);
+v_dec = v(21:end-3);
+t_dec = t(21:end-4)-t(19);
+d_dec = d(21:end-4)-d(end-4);
 
+%manually add in extra points
+
+for i=1:10
+    v_acc(end+1) = (2*v_acc(end)-(1+0.006/i)*v_acc(end-1));
+    t_acc(end+1) = 2*t_acc(end)-t_acc(end-1);
+    d_acc(end+1) = 2*d_acc(end)-d_acc(end-1);
+end
+for i=1:2
+    v_dec = [2*v_dec(1)-v_dec(2) v_dec];
+    t_dec = [2*t_dec(1)-t_dec(2) t_dec];
+    d_dec = [2*d_dec(1)-d_dec(2) d_dec];
+end
+
+%interpolate to get theoretical 1cm resolution
+v_acc = interp(v_acc, 50);
+t_acc = interp(t_acc, 50);
+d_acc = interp(d_acc, 50);
+
+v_dec = interp(v_dec, 50);
+t_dec = interp(t_dec, 50);
+d_dec = interp(d_dec, 50);
 
 % figure
 % hold on
