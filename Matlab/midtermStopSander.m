@@ -1,4 +1,4 @@
-% Script written by Sander Delfos
+% Script written by Sander Delfos / Sieger Falkena
 %
 % This script should stop at any given distanceFromWall before the wall.
 % When KITT is not connected, the variable simulation can be set to value 1, this
@@ -7,7 +7,7 @@
 
 
 run curvesSander.m
-sim = 'negende_meting_18.8v.mat'                            %file to simulate with
+sim = 'vijfde_meting_19.0v.mat'                            %file to simulate with
 
 %SETTINGS:
 distanceFromWall = 1;                                       % set to desired stopping distance from wall
@@ -15,14 +15,14 @@ simulation = 1;                                             % make 1 for simulat
 brakeLengthCompensation = 1;                                % compensation for braking length (positive for earlier braking)
 brakeDurationDelay = 0.3;                                   % set how much less time braking (positve for less braking)
 minimumBrakeLength = 1;                                     % set a minumum for brake length to avoid crashes
-N=1;                                                        % increase value to get more measurements
+N=12;                                                       % increase value to get more measurements
+transmitDelay = 0.25;                                       %simulate delay caused by transmitting driving command
 
 
 %accelerate to full speed
 if (simulation == 1)
     tic
-    transmitDelay = 0.25;
-    pause(transmitDelay)                                       %simulate delay caused by transmitting driving command
+    pause(transmitDelay)                                       
 else
     EPOCommunications('transmit','M165');
     tic
@@ -41,55 +41,67 @@ end
 % end
 
 
-brakeLength = zeros(1,N);                                   %initialize matrix for MORE SPEEDDDD
-for i = 1:N                                                 %get N measurements for brakeLength
+brakeLength = zeros(1,N);                                                   %initialize matrix for MORE SPEEDDDD
+for i = 1:N                                                                 %get N measurements for brakeLength
     if (simulation == 0)
-        [d_l, d_r] = checkDistance();                           %get sensor data
+        [d_l, d_r] = checkDistance();                                       %get sensor data
     else
-        index_t = find(t>toc,1);
-        d_l = load( sim , 'd_l_log'); d_l = d_l.d_l_log; d_l= d_l(index_t);
-        d_r = load( sim , 'd_r_log'); d_r = d_r.d_r_log; d_r = d_r(index_t);
+        d_l = load( sim , 'd_l_log'); d_l = d_l.d_l_log;
+        d_r = load( sim , 'd_r_log'); d_r = d_r.d_r_log;
+        t = load( sim , 't'); t = t.t; 
+        t(1) = 0;
+        command_index = 20              %HARD CODED, still need to find a way to automatically find the command point. 
+        t = t - t(command_index);
+        t_toc = zeros(N);
+        t_toc(i) = toc;
+        index_t = find(t>t_toc(i),1);
+        d_l = d_l(index_t);
+        d_r = d_r(index_t);
     end    
-    measuredDistance = max(d_l, d_r)/100;                   %take max so that glitches don't matter & convert to meters
-    index1 = find(t_acc>toc);                               %find index of driven distance in curve
-    distanceDriven = d_acc(index1(1));                      %find distance that has been traveled already
-    distanceToDrive = measuredDistance + distanceDriven - distanceFromWall;     %determine distance that needs to be traveled in total
-    d_acc = d_acc - distanceDriven;                         %shift acceleration curve to compensate for initial velocity
-    d_dec = d_dec + distanceToDrive;                        %shift deceleration curve
-    figure
-    plot(d_acc, v_acc)
+    measuredDistance = max(d_l, d_r)/100;                                   %take max so that glitches don't matter & convert to meters
+    index1 = find(t_acc>toc);                                               %find index of driven distance in curve
+    distanceDriven = d_acc(index1(1));                                      %find distance that has been traveled already
+    distanceToDrive = measuredDistance + distanceDriven - distanceFromWall; %determine distance that needs to be traveled in total
+    d_acc_shift = d_acc - distanceDriven;                                   %shift acceleration curve to compensate for initial velocity
+    d_dec_shift = d_dec + distanceToDrive;                                  %shift deceleration curve
+    if ~mod(i-1, 4)
+        figure() ;
+    end
+    subplot(2, 2, mod(i-1, 4)+1) ;
+    plot(d_acc_shift, v_acc)
     hold on
-    plot(d_dec, v_dec)
+    plot(d_dec_shift, v_dec)
     ylim([0,3])
     xlim([0,distanceToDrive+1])
-    [brake_point,brake_speed] = polyxpoly(d_acc, v_acc, d_dec, v_dec); %determine the point where the car should fully brake
-    % scatter(brake_point,brake_speed)                      %plot switching point
-    index2 = find(v_acc>brake_speed ,1);                       %find corresponding index for the speed when starting to brake
-    %brake_time = t_acc(index2(1));                         %find corresponding index for time when starting to brake
-    index3 = find(v_dec < v_acc(index2),1);                %find index for brake point in deceleration curve
-    index4 = find(v_dec < 0.01 ,1);                            %find index for when speed is zero in deceleration curve
-    brake_duration = t_dec(index4)-t_dec(index3);             %find how long KITT needs to brake
-    brakeLength(1,i) = d_dec(index4)-d_dec(index3);   %find distance from wall when KITT needs to start braking
+    title(['N = ' num2str(i) ', DistanceToDrive = ' num2str(distanceToDrive)]); 
+    [brake_point,brake_speed] = polyxpoly(d_acc_shift, v_acc, d_dec_shift, v_dec); %determine the point where the car should fully brake
+    % scatter(brake_point,brake_speed)                                      %plot switching point
+    index2 = find(v_acc>brake_speed ,1);                                    %find corresponding index for the speed when starting to brake
+    %brake_time = t_acc(index2(1));                                         %find corresponding index for time when starting to brake
+    index3 = find(v_dec < v_acc(index2),1);                                 %find index for brake point in deceleration curve
+    index4 = find(v_dec < 0.01 ,1);                                         %find index for when speed is zero in deceleration curve
+    brake_duration = t_dec(index4)-t_dec(index3);                           %find how long KITT needs to brake
+    brakeLength(1,i) = d_dec_shift(index4)-d_dec_shift(index3);             %find distance from wall when KITT needs to start braking
 end
 
-% brakeLength = sort(brakeLength);                            %sort the values from small to large
-% delete = fix(N/4);                                          
-% brakeLength = brakeLength(delete:end-delete);               %delete first 1/4 and last 1/4 part from vector to remove possible outliers
-% brakeLength = mean(brakeLength);                            %take average
-brakeLength = brakeLength + distanceFromWall;                 %add distanceToWall
+brakeLength = sort(brakeLength);                                            %sort the values from small to large
+% delete = fix(N/5);                                          
+% brakeLength = brakeLength(delete:end-delete);                               %delete first 1/4 and last 1/4 part from vector to remove possible outliers
+% brakeLength = mean(brakeLength);                                            %take average
+brakeLength = brakeLength + distanceFromWall;                               %add distanceToWall
 
-if (brakeLength < minimumBrakeLength)                       %make sure braking length is not too low (set value at beginning) to avoid crashes
+if (brakeLength < minimumBrakeLength)                                       %make sure braking length is not too low (set value at beginning) to avoid crashes
     brakeLength = minimumBrakeLength;
 end
 
-brakeLength = brakeLength + brakeLengthCompensation;        %compensation in meters, set at beginning of script
+brakeLength = brakeLength + brakeLengthCompensation;                        %compensation in meters, set at beginning of script
 
-currentDistance = 5;                                        %initialize to high enough value
-while(currentDistance/100 > brakeLength)                    %wait for right moment to brake....
+currentDistance = 5;                                                        %initialize to high enough value
+while(currentDistance/100 > brakeLength)                                    %wait for right moment to brake....
     [d_l,d_r]=checkDistance();
     currentDistance = max(d_l,d_r);
 end
-brake(brake_duration,simulation, brakeDurationDelay);                           %BRAKE NOW PLZ
+brake(brake_duration,simulation, brakeDurationDelay, transmitDelay);         %BRAKE NOW PLZ
 
 % delay = 1;
 % brakeTimer1 = timer;
@@ -99,18 +111,18 @@ brake(brake_duration,simulation, brakeDurationDelay);                           
 % start(brakeTimer1);
 
 
-function brake(brake_duration,simulation,brakeDurationDelay)
-brakeTimer2 = timer;                                        %timer initialiseren
-brakeTimer2.ExecutionMode = 'singleShot';                   %fires the timer callback only once
-brakeTimer2.StartDelay = round(brake_duration,3)-brakeDurationDelay;       %fires timer callback after this delay
+function brake(brake_duration, simulation, brakeDurationDelay, transmitDelay)
+brakeTimer2 = timer;                                                        %timer initialiseren
+brakeTimer2.ExecutionMode = 'singleShot';                                   %fires the timer callback only once
+brakeTimer2.StartDelay = round(brake_duration,3)-brakeDurationDelay;        %fires timer callback after this delay
 if (simulation == 1)
-    brakeTimer2.TimerFcn = @(~,~)checkMeasurementSander(1); %just do something random when simulation is active so that matlab quits whining about not having a callback function blablabla
+    brakeTimer2.TimerFcn = @(~,~)checkMeasurementSander(1);                 %just do something random when simulation is active so that matlab quits whining about not having a callback function blablabla
 else
-    brakeTimer2.TimerFcn = @(~,~)EPOCommunications('transmit','M150'); %define timer callback function as setting motorspeed 150
+    brakeTimer2.TimerFcn = @(~,~)EPOCommunications('transmit','M150');      %define timer callback function as setting motorspeed 150
 end
 start(brakeTimer2)
 if (simulation == 1)
-    pause(1)
+    pause(transmitDelay)
 else
     EPOCommunications('transmit','M135');
 end
