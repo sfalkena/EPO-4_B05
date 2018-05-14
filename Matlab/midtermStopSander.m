@@ -89,7 +89,7 @@ while(currentDistance/100 > brakeLength)                    %wait for right mome
     [d_l,d_r]=checkDistance();
     currentDistance = max(d_l,d_r);
 end
-brake(brake_duration,simulation);                           %BRAKE NOW PLZ
+brake(brake_duration,simulation, brakeDurationDelay);                           %BRAKE NOW PLZ
 
 % delay = 1;
 % brakeTimer1 = timer;
@@ -115,8 +115,12 @@ else
     EPOCommunications('transmit','M135');
 end
 
-[d_l,d_r]=checkDistance();
-currentDistance = max(d_l,d_r);
-fprintf('We stopped at %.1f cm from the wall \n', currentDistance*100)
+if (simulation == 0);
+    [d_l,d_r]=checkDistance();
+    currentDistance = max(d_l,d_r);
+    fprintf('We stopped at %.1f cm from the wall \n', currentDistance*100)
+else
+end
+
 end
 
