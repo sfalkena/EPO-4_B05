@@ -50,7 +50,7 @@ for i = 1:N                                                                 %get
         d_r = load( sim , 'd_r_log'); d_r = d_r.d_r_log;
         t = load( sim , 't'); t = t.t; 
         t(1) = 0;                                                           %fist value is allways wrong
-        command_index = 20              %HARD CODED, still need to find a way to automatically find the command point. 
+        command_index = 20;              %HARD CODED, still need to find a way to automatically find the command point. 
         t = t - t(command_index);                                           %shift time vector to moment that car starts to drive
         t_toc = zeros(N);
         t_toc(i) = toc;                                                     %store toc for debugging
@@ -61,7 +61,7 @@ for i = 1:N                                                                 %get
     measuredDistance = max(d_l, d_r)/100;                                   %take max so that glitches don't matter & convert to meters
     index1 = find(t_acc>toc);                                               %find index of driven distance in curve
     distanceDriven = d_acc(index1(1));                                      %find distance that has been traveled already
-    distanceToDrive = measuredDistance + distanceDriven - distanceFromWall; %determine distance that needs to be traveled in total
+    distanceToDrive = measuredDistance - distanceFromWall;                  %determine distance that needs to be traveled in total
     d_acc_shift = d_acc - distanceDriven;                                   %shift acceleration curve to compensate for initial velocity
     d_dec_shift = d_dec + distanceToDrive;                                  %shift deceleration curve
     if (simulation == 1)
