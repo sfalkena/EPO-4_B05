@@ -100,8 +100,13 @@ brakeLength = brakeLength + brakeLengthCompensation;                        %com
 
 currentDistance = 5;                                                        %initialize to high enough value
 while(currentDistance/100 > brakeLength)                                    %wait for right moment to brake....
+    oldDistance = currentDistance;
     [d_l,d_r]=checkDistance();
     currentDistance = max(d_l,d_r);
+    difference = currentDistance - oldDistance;
+    if ((currentDistance + 0.5*difference)/100 > brakeLength)
+        break
+    end
 end
 brake(brake_duration,simulation, brakeDurationDelay, transmitDelay);        %BRAKE NOW PLZ
 
