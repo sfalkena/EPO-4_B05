@@ -15,8 +15,8 @@ simulation = 1;                                             % make 1 for simulat
 brakeLengthCompensation = 1;                                % compensation for braking length (positive for earlier braking)
 brakeDurationDelay = 0.3;                                   % set how much less time braking (positve for less braking)
 minimumBrakeLength = 1;                                     % set a minumum for brake length to avoid crashes
-N=12;                                                       % increase value to get more measurements
-transmitDelay = 0.25;                                       %simulate delay caused by transmitting driving command
+N=8;                                                        % increase value to get more measurements
+transmitDelay = 0.25;                                       % simulate delay caused by transmitting driving command
 
 
 %accelerate to full speed
@@ -46,15 +46,15 @@ for i = 1:N                                                                 %get
     if (simulation == 0)
         [d_l, d_r] = checkDistance();                                       %get sensor data
     else
-        d_l = load( sim , 'd_l_log'); d_l = d_l.d_l_log;
+        d_l = load( sim , 'd_l_log'); d_l = d_l.d_l_log;                    %extract data from simulated file
         d_r = load( sim , 'd_r_log'); d_r = d_r.d_r_log;
         t = load( sim , 't'); t = t.t; 
-        t(1) = 0;
+        t(1) = 0;                                                           %fist value is allways wrong
         command_index = 20              %HARD CODED, still need to find a way to automatically find the command point. 
-        t = t - t(command_index);
+        t = t - t(command_index);                                           %shift time vector to moment that car starts to drive
         t_toc = zeros(N);
-        t_toc(i) = toc;
-        index_t = find(t>t_toc(i),1);
+        t_toc(i) = toc;                                                     %store toc for debugging
+        index_t = find(t>t_toc(i),1);                                       %extract simulated sensor values
         d_l = d_l(index_t);
         d_r = d_r(index_t);
     end    
@@ -64,16 +64,18 @@ for i = 1:N                                                                 %get
     distanceToDrive = measuredDistance + distanceDriven - distanceFromWall; %determine distance that needs to be traveled in total
     d_acc_shift = d_acc - distanceDriven;                                   %shift acceleration curve to compensate for initial velocity
     d_dec_shift = d_dec + distanceToDrive;                                  %shift deceleration curve
-    if ~mod(i-1, 4)
-        figure() ;
+    if (simulation == 1)
+        if ~mod(i-1, 4)                                                     %automatically plot intersection curves in different subplots
+            figure() ;
+        end
+        subplot(2, 2, mod(i-1, 4)+1) ;
+        plot(d_acc_shift, v_acc)
+        hold on
+        plot(d_dec_shift, v_dec)
+        ylim([0,3])
+        xlim([0,distanceToDrive+1])
+        title(['N = ' num2str(i) ', DistanceToDrive = ' num2str(distanceToDrive)]);
     end
-    subplot(2, 2, mod(i-1, 4)+1) ;
-    plot(d_acc_shift, v_acc)
-    hold on
-    plot(d_dec_shift, v_dec)
-    ylim([0,3])
-    xlim([0,distanceToDrive+1])
-    title(['N = ' num2str(i) ', DistanceToDrive = ' num2str(distanceToDrive)]); 
     [brake_point,brake_speed] = polyxpoly(d_acc_shift, v_acc, d_dec_shift, v_dec); %determine the point where the car should fully brake
     % scatter(brake_point,brake_speed)                                      %plot switching point
     index2 = find(v_acc>brake_speed ,1);                                    %find corresponding index for the speed when starting to brake
@@ -85,9 +87,9 @@ for i = 1:N                                                                 %get
 end
 
 brakeLength = sort(brakeLength);                                            %sort the values from small to large
-% delete = fix(N/5);                                          
-% brakeLength = brakeLength(delete:end-delete);                               %delete first 1/4 and last 1/4 part from vector to remove possible outliers
-% brakeLength = mean(brakeLength);                                            %take average
+delete = fix(N/5);                                          
+brakeLength = brakeLength(delete:end-delete);                               %delete first 1/4 and last 1/4 part from vector to remove possible outliers
+brakeLength = mean(brakeLength);                                            %take average
 brakeLength = brakeLength + distanceFromWall;                               %add distanceToWall
 
 if (brakeLength < minimumBrakeLength)                                       %make sure braking length is not too low (set value at beginning) to avoid crashes
@@ -101,7 +103,7 @@ while(currentDistance/100 > brakeLength)                                    %wai
     [d_l,d_r]=checkDistance();
     currentDistance = max(d_l,d_r);
 end
-brake(brake_duration,simulation, brakeDurationDelay, transmitDelay);         %BRAKE NOW PLZ
+brake(brake_duration,simulation, brakeDurationDelay, transmitDelay);        %BRAKE NOW PLZ
 
 % delay = 1;
 % brakeTimer1 = timer;
@@ -127,7 +129,7 @@ else
     EPOCommunications('transmit','M135');
 end
 
-if (simulation == 0);
+if (simulation == 0)
     [d_l,d_r]=checkDistance();
     currentDistance = max(d_l,d_r);
     fprintf('We stopped at %.1f cm from the wall \n', currentDistance*100)
