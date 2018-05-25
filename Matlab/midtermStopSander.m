@@ -7,7 +7,7 @@
 
 
 run curvesSander.m
-sim = 'vijfde_meting_19.0v.mat'                            %file to simulate with
+sim = 'vijfde_meting_19.0v.mat';                            %file to simulate with
 
 %SETTINGS:
 distanceFromWall = 1;                                       % set to desired stopping distance from wall
