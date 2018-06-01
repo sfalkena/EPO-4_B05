@@ -1,0 +1,6 @@
+EPOCommunications('transmit','M158')
+EPOCommunications('transmit','D200')
+pause(1)
+EPOCommunications('transmit','M158')
+pause(30)
+EPOCommunications('transmit','M150')
