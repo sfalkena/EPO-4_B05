@@ -32,10 +32,10 @@ if sensor_min < distance_bound
         y_object = x_car - sensor_min * sin(car_orientation)
         
     end
-end
-%default value for when no object is close enough
+    else
+    %default value for when no object is close enough
 x_object = -1;
 y_object = -1;
+end
         
-
 end
