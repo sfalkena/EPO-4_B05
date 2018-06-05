@@ -1,3 +1,4 @@
+%%%%%%%%%%%%%%%%%
 function [ hfil ] = ch3(y,x)
 %Ch3 algorithm based on EET11 labs
 Ny = length(y);
