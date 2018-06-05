@@ -1,33 +1,31 @@
-load('audiodata_B5.mat');       %load measurement data
-a = RXXr(6,:,:);
-%y_ref1o = RXXr(1,:,1);
-%y_ref2o = RXXr(2,:,2);
-%y_ref1 = y_ref1o(3500:6999);
-%y_ref2 = y_ref2o(3500:6999);
-y_ref1 = RXXr(1,:,1);
-y_ref2 = RXXr(2,:,2);
-y_ref3 = RXXr(3,:,3);
-y_ref4 = RXXr(4,:,4);
-y_ref5 = RXXr(5,:,5);
-yr1 = a(:,:,1);
-yr2 = a(:,:,2);
-yr3 = a(:,:,3);
-yr4 = a(:,:,4);
-yr5 = a(:,:,5);
-r12 = Calculate_TDOA(yr1,yr2);
-r13 = Calculate_TDOA(yr1,yr3);
-r14 = Calculate_TDOA(yr1,yr4);
-r15 = Calculate_TDOA(yr1,yr5);
-r23 = Calculate_TDOA(yr2,yr3);
-r24 = Calculate_TDOA(yr2,yr4);
-r25 = Calculate_TDOA(yr2,yr5);
-r34 = Calculate_TDOA(yr3,yr4);
-r35 = Calculate_TDOA(yr3,yr5);
-r45 = Calculate_TDOA(yr4,yr5);
-%d5 = Calculate_TDOA(yr5,y_ref5);
-%r12 = d1 - d2;
-%d1 = finddelay(y_ref,yr2);
-%d2 = finddelay(y_ref,yr1);
-%d = abs(d1-d2);
-%t = d/48000;
-%x = t*34300
+%%%%%%%%%%%%%%%%%%
+Fs = 48000;                         %Sampling frequency [Hz]
+v = 34300;                          %Speed of sounds in air [cm/s]
+
+load('audiodata_B5_1.mat');         %Load reference data
+a = RXXr(6,:,:);                    %Measurement at location a (for testing)
+b = RXXr(7,:,:);                    %Measurement at location b (for testing)
+c = RXXr(8,:,:);                    %Measurement at location c (for testing)
+m = RXXr(9,:,:);                    %Measurement at location m (for testing)
+y_ref = RXXr(2,:,2);                %Select recording at mic2 as reference
+
+%get_rec();                         %Record the audio signal and store it in RXXr 
+
+yr1 = a(:,:,1);                  %Recording at mic1                     
+yr2 = a(:,:,2);                  %Recording at mic2
+yr3 = a(:,:,3);                  %Recording at mic3
+yr4 = a(:,:,4);                  %Recording at mic4
+yr5 = a(:,:,5);                  %Recording at mic5 (not used)
+
+d1 = Calculate_TDOA(yr1,y_ref);     %Relative distance from mic1
+d2 = Calculate_TDOA(yr2,y_ref);     %Relative distance from mic2
+d3 = Calculate_TDOA(yr3,y_ref);     %Relative distance from mic3
+d4 = Calculate_TDOA(yr4,y_ref);     %Relative distance from mic4
+
+r12 = (d1-d2)/Fs *v;
+r13 = (d1-d3)/Fs *v;
+r14 = (d1-d4)/Fs *v;
+r23 = (d2-d3)/Fs *v;
+r24 = (d2-d4)/Fs *v;
+r34 = (d3-d4)/Fs *v;
+[x_cor,y_cor] = localization(r12,r13,r14,r23,r24,r34)  %Retrieve x and y coordinates
