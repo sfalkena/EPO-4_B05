@@ -30,7 +30,7 @@ distance_bound = 1; %arbitrary value for testing
 if sensor_min < distance_bound
     object = 1
 
-        %left sensor gives 10cm higher than right sensor
+        %left sensor gives 10cm higher than right sensor, for now an arbitrary value is chosen
     if diff_sensor > 0.10
         
         x_object = x_car + sensor_min * cos(car_orientation) + x_compensation_r
@@ -44,7 +44,7 @@ if sensor_min < distance_bound
     end
     
     else
-        if abs(diff_sensor) > (0.1*R)
+        if abs(diff_sensor) > (0.1*R) %0.1*R is arbirtrary for testing
     %no object
     object = 0
     x_object = -1;
