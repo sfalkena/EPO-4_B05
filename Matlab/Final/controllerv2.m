@@ -5,9 +5,9 @@ clear xKITT yKITT
 simulation = 1;
 
 %% set initial values for KITT
-xKITT = 0;
-yKITT = 0;
-directionKITT = 0;
+xKITT = 100;
+yKITT = 350;
+directionKITT = 130;
 directionKITT = deg2rad(directionKITT); %convert to radians
 
 %% Plot the playground with microphones, targets and starting position of
@@ -32,36 +32,46 @@ scatter(xKITT(1),yKITT(1),'g')
 i = 1;
 k = 2;
 targets = 4;
-errorMargin = 15;
+errorMargin = 10;
 directionMargin = deg2rad(10);
 state = 'new_target';
+reverse = 0;
 
 %% FSM
 while (1)
     switch state
         
-        case 'new_target' % set new target 
-            xTarget = Px(i);
-            yTarget = Py(i);
+        case 'new_target' % set new target
             if (i <= targets)
                 state = 'direction';
             else
                 break
             end
+            xTarget = Px(i);
+            yTarget = Py(i);
             
         case 'direction' % determine the current direction of KITT and decide whether to go left, right or straight
             if (length(xKITT)>1)
                 xDeltaKITT = xKITT(end)-xKITT(end-1);
                 yDeltaKITT = yKITT(end)-yKITT(end-1);
                 directionKITT = atan2(yDeltaKITT,xDeltaKITT);
+                if (reverse == 1)
+                    directionKITT = directionKITT + pi;
+                end
             end
             xDeltaTarget = xTarget-xKITT(end);
             yDeltaTarget = yTarget-yKITT(end);
             directionTarget = atan2(yDeltaTarget,xDeltaTarget);
             directionError = mod(directionKITT - directionTarget,2*pi);
-            distFromTarget = sqrt((xKITT(end)-xTarget)^2+(yKITT(end)-yTarget)^2);
-            if (distFromTarget < errorMargin)
+            distFromTarget(k) = sqrt((xKITT(end)-xTarget)^2+(yKITT(end)-yTarget)^2);
+            xFuture = xKITT(end)+50*cos(directionKITT);
+            yFuture = yKITT(end)+50*sin(directionKITT);
+            if (distFromTarget(k) < errorMargin)
                 state = 'stop'
+            elseif (xFuture > 450) | (xFuture < 0) | (yFuture > 450) | (yFuture <0)
+                state = 'reverse'
+            elseif (distFromTarget(k) > distFromTarget(k-1)) && (reverse == 0) && (distFromTarget(k) < 140)
+                state = 'reverse'
             elseif (abs(directionError) < directionMargin)
                 state  = 'straight'
             elseif (directionError < 0)
@@ -77,6 +87,7 @@ while (1)
                     state = 'left'
                 end
             end
+            reverse = 0;
             
             
         case 'location' % determine location (or fake location in sim)
@@ -94,7 +105,19 @@ while (1)
             end
             k=k+1;
             state = 'direction';
-
+            
+        case 'reverse'
+            reverse = 1;
+            EPOCommunications('transmit','D150')
+            EPOCommunications('transmit','M145')
+            pause(1)
+            EPOCommunications('transmit','M150')
+            if (simulation == 1)
+                xKITT(k) = xKITT(k-1) - 50*cos(directionKITT);
+                yKITT(k) = yKITT(k-1) - 50*sin(directionKITT);
+            end
+            state = 'location';
+            
         case 'straight' % drive straight for a second
             EPOCommunications('transmit','D150')
             EPOCommunications('transmit','M158')
