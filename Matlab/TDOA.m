@@ -6,8 +6,8 @@ function afstand = TDOA(h1,h2,p)
 M1=max(h1);
 F1=find(h1==M1);
 Ts=700;
-h11=h1(F1-Ts:F1+Ts);
-h22=h2(F1-Ts:F1+Ts);
+h11=h1(F1(1)-Ts:F1(1)+Ts);
+h22=h2(F1(1)-Ts:F1(1)+Ts);
 figure
 plot(h11)
 hold on

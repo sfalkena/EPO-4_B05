@@ -20,11 +20,11 @@ t_1=transpose(t_1);
 
 t=a; %choose measurement point
 %calculate impulse responses
-h1=ch3(ref,RXXr(t,:,1));
-h2=ch3(ref,RXXr(t,:,2));
-h3=ch3(ref,RXXr(t,:,3));
-h4=ch3(ref,RXXr(t,:,4));
-h5=ch3(ref,RXXr(t,:,5));
+h1=ch2(ref,RXXr(t,:,1)).^2;
+h2=ch2(ref,RXXr(t,:,2)).^2;
+h3=ch2(ref,RXXr(t,:,3)).^2;
+h4=ch2(ref,RXXr(t,:,4)).^2;
+h5=ch2(ref,RXXr(t,:,5)).^2;
 
 % figure
 % hold on
