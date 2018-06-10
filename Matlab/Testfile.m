@@ -8,21 +8,21 @@ Fs=48000;
 RepFr = 3; %Repetition frequency
 t=linspace(0,(length(RXXr(1,:,1))/Fs),length(RXXr(1,:,1)));
 
-m=6; %measurement a
+u = 9; %measurement (a=6,b=7,c=8,m=9)
 
 %Plot time energy signal
 figure('units','normalized','outerposition',[0 0 1 1]) ;
 for i = 1:5
     a(i)=subplot(5, 1, mod(i-1, 5)+1) ;
-    plot(t,RXXr(m,:,i).^2);   hold on
+    plot(t,RXXr(u,:,i).^2);   hold on
     %find which microphone has first significant peaks.
-    [pk,loc]=findpeaks(RXXr(m,:,i).^2,Fs,'Threshold',0.1e-4);
+    [pk,loc]=findpeaks(RXXr(u,:,i).^2,Fs,'Threshold',0.1e-4);
     pks(i,:) = loc(1); 
     xlabel('Time[s]');
     ylabel('Energy');
-    title (['Time/energy signal of p ',num2str(m),', mic',num2str(i)])
+    title (['Time/energy signal of p ',num2str(u),', mic',num2str(i)])
     %calculate impulse responses
-    h(:,i) = ch2(ref,RXXr(m,:,i)).^2;
+    h(:,i) = ch2(ref,RXXr(u,:,i)).^2;
 end
 linkaxes(a, 'x'); %make sure all plots zoom together
 
@@ -77,3 +77,4 @@ r34 = TDOA(h(:,3),h(:,4),'r34');
 % r45 = TDOA(h(4),h(5),'r45');
 
 [x_cor,y_cor] = localization(r12,r13,r14,r23,r24,r34)
+run loc4mic_2d
