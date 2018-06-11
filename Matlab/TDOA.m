@@ -4,24 +4,24 @@
 
 function afstand = TDOA(h1,h2,p)
 M1=max(h1);
-F1=find(h1==M1);
-Ts=700;
+F1=find(h1==M1)
+Ts=900;
 h11=h1(F1-Ts:F1+Ts);
 h22=h2(F1-Ts:F1+Ts);
-figure
-plot(h11)
-hold on
-plot(h22)
+% figure
+% plot(h11)
+% hold on
+% plot(h22)
 
 M2=max(h22);
 F2=find(h22==M2);
-M22=max(h22(1:Ts-10))
+M22=max(h22(1:Ts-10));
 F22=find(h22==M22);
 if (2*M22 > M2)
     F2 = F22;
     M2 = M22;
 end
-scatter(F2(1),M2);
+% scatter(F2(1),M2);
 
 M1=max(h11);
 F1=find(h11==M1);

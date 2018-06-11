@@ -8,7 +8,7 @@ Fs=48000;
 RepFr = 3; %Repetition frequency
 t=linspace(0,(length(RXXr(1,:,1))/Fs),length(RXXr(1,:,1)));
 
-u = 9; %measurement (a=6,b=7,c=8,m=9)
+u = 6; %measurement (a=6,b=7,c=8,m=9)
 
 %Plot time energy signal
 figure('units','normalized','outerposition',[0 0 1 1]) ;
@@ -42,7 +42,7 @@ linkaxes(b, 'x');
 % offset = 100; %amount of samples before first peak
 % clear h; %h is rebuild, otherwise Matlab gives errors
 % for i = 1:5
-%    trim(:,i) = RXXr(m,((min(pks)*Fs-offset):((1/RepFr*Fs))),i);
+%    trim(:,i) = RXXr(u,((min(pks)*Fs-offset):((1/RepFr*Fs))),i);
 %    t=linspace(0,(length(trim(:,i))/Fs),length(trim(:,i)));
 %    c(i)=subplot(5, 1, mod(i-1, 5)+1) ;
 %    plot(t,trim(:,i).^2);
@@ -50,11 +50,11 @@ linkaxes(b, 'x');
 %    ylabel('Energy');
 %    title (['Trimmed time signal for mic',num2str(i)]) 
 %    %calculate impulse responses
-%    h(:,i) = ch2(ref,trim(:,i)).^2;
+%    h(:,i) = ch2(ref,trim(:,i));
 % end
 % linkaxes(c, 'x');
 
-%plot trimmed impulse responses
+% plot trimmed impulse responses
 % figure('units','normalized','outerposition',[0 0 1 1]) ;
 % for i = 1:5
 %     d(i)=subplot(5, 1, mod(i-1, 5)+1) ;
@@ -76,5 +76,5 @@ r34 = TDOA(h(:,3),h(:,4),'r34');
 % r35 = TDOA(h(3),h(5),'r35');
 % r45 = TDOA(h(4),h(5),'r45');
 
-[x_cor,y_cor] = localization(r12,r13,r14,r23,r24,r34)
+[x_cor,y_cor,y] = localization(r12,r13,r14,r23,r24,r34)
 run loc4mic_2d
