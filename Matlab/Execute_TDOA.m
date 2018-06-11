@@ -1,31 +1,50 @@
 %%%%%%%%%%%%%%%%%%
 Fs = 48000;                         %Sampling frequency [Hz]
-v = 34300;                          %Speed of sounds in air [cm/s]
-
+load('audiodata_B5.mat');         %Load reference data
+ref = RXXr(3,:,5);                     %Load reference data
+ref = ref(2195:18196);
 load('audiodata_B5_1.mat');         %Load reference data
-a = RXXr(6,:,:);                    %Measurement at location a (for testing)
-b = RXXr(7,:,:);                    %Measurement at location b (for testing)
-c = RXXr(8,:,:);                    %Measurement at location c (for testing)
-m = RXXr(9,:,:);                    %Measurement at location m (for testing)
-y_ref = RXXr(2,:,2);                %Select recording at mic2 as reference
+a=6; b=7; c=8; m=9;                  %different measurements from B5_1
 
-%get_rec();                         %Record the audio signal and store it in RXXr 
+%create axes for plots
+freq_y = fftshift(fft(RXXr(:,:,1)));
+freq_x = fftshift(fft(ref));
+N=length(freq_x);
+Omega = pi*[-1: 2/N : 1-1/N];
+F=(Omega*Fs)/(2*pi);
+t=linspace(0,(N/Fs),N);
+t=transpose(t);
+N_1=length(freq_y);
+Omega_1 = pi*[-1: 2/N_1 : 1-1/N_1];
+F_1=(Omega_1*Fs)/(2*pi);
+t_1=linspace(0,(N_1/Fs),N_1);
+t_1=transpose(t_1);
 
-yr1 = a(:,:,1);                  %Recording at mic1                     
-yr2 = a(:,:,2);                  %Recording at mic2
-yr3 = a(:,:,3);                  %Recording at mic3
-yr4 = a(:,:,4);                  %Recording at mic4
-yr5 = a(:,:,5);                  %Recording at mic5 (not used)
+l=a; %choose measurement point
+%calculate impulse responses
+h1=ch2(ref,RXXr(l,:,1)).^2;
+h2=ch2(ref,RXXr(l,:,2)).^2;
+h3=ch2(ref,RXXr(l,:,3)).^2;
+h4=ch2(ref,RXXr(l,:,4)).^2;
+h5=ch2(ref,RXXr(l,:,5)).^2;
 
-d1 = Calculate_TDOA(yr1,y_ref);     %Relative distance from mic1
-d2 = Calculate_TDOA(yr2,y_ref);     %Relative distance from mic2
-d3 = Calculate_TDOA(yr3,y_ref);     %Relative distance from mic3
-d4 = Calculate_TDOA(yr4,y_ref);     %Relative distance from mic4
+% figure
+% hold on
+% plot(t_1,h1)
+% plot(t_1,h2)
+% title('Channels')
+% xlabel('Time(s)')
+% ylabel('Amplitude')
 
-r12 = (d1-d2)/Fs *v;
-r13 = (d1-d3)/Fs *v;
-r14 = (d1-d4)/Fs *v;
-r23 = (d2-d3)/Fs *v;
-r24 = (d2-d4)/Fs *v;
-r34 = (d3-d4)/Fs *v;
-[x_cor,y_cor] = localization(r12,r13,r14,r23,r24,r34)  %Retrieve x and y coordinates
+r12 = TDOA(h1,h2,'r12');        %Relative distance from mic1
+r13 = TDOA(h1,h3,'r13');
+r14 = TDOA(h1,h4,'r14');
+r15 = TDOA(h1,h5,'r15');
+r23 = TDOA(h2,h3,'r23');
+r24 = TDOA(h2,h4,'r24');
+r34 = TDOA(h3,h4,'r34');
+r25 = TDOA(h2,h5,'r25');
+r35 = TDOA(h3,h5,'r35');
+r45 = TDOA(h4,h5,'r45');
+
+[x_cor,y_cor,z_cor] = localization(r12,r13,r14,r15,r23,r24,r25,r34,r35,r45)  %Retrieve x and y coordinates

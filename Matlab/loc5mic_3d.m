@@ -1,7 +1,7 @@
 %Simulation of localisation (Appendix C)
 
-x = [150 150 0]';                                          % (unknown) location of the car
-m = [460 0 0; 0 0 0; 0 460 0; 460 460 0; 460 230 30]';     % (known) locations of the mics
+x = [200 360 24]';                                          % (unknown) location of the car
+m = [460 0 24; 0 0 24; 0 460 24; 460 460 24; 230 460 54]';     % (known) locations of the mics
 for i = 1:5
     d(i) = sqrt((x(1)-m(1,i))^2 + (x(2)-m(2,i))^2 + (x(3)-m(3,i))^2);
     mabs(i) = m(1,i)^2 + m(2,i)^2 + m(3,i)^2;
