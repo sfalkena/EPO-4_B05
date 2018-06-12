@@ -24,5 +24,5 @@ r25 = TDOA(h2,h5,'r25');
 r35 = TDOA(h3,h5,'r35');
 r45 = TDOA(h4,h5,'r45');
 
-[x_cor,y_cor] = localisation5mic(r12,r13,r14,r15,r23,r24,r25,r34,r35,r45);  %Retrieve x and y coordinates
+[x_cor,y_cor] = localization(r12,r13,r14,r23,r24,r34);  %Retrieve x and y coordinates
 end
