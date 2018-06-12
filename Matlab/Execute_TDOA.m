@@ -1,5 +1,10 @@
 function [x_cor,y_cor] = Execute_TDOA()
-load('audiodata_B5_1.mat');         %Load recording data
+
+load('audiodata_B5.mat');               %Load reference data
+ref = RXXr(3,:,5);                  
+ref = ref(2195:18196);
+
+load('audiodata_B5_audio.mat');         %Load recording data
 
 %Calculate impulse responses
 h1=ch2(ref,RXXr(:,:,1)).^2;

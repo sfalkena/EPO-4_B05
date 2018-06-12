@@ -84,4 +84,4 @@ for nRun = 1:nLoop
 end
 
 % Save all the data and parameters code,Fs,nMicrop,nLoop,Nrp 
-save(['audiodata_' iMeasure '.mat'],'RXXr','f_b','f_c','c_r','code','bincode','Fs','nMicrop','nRun','Nrp', 'Trec','-mat');
+save(['audiodata_' iMeasure '.mat'],'RXXr','f_b','f_c','c_r','code','Fs','nMicrop','nRun','Nrp', 'Trec','-mat');
