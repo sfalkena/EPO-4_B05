@@ -1,4 +1,4 @@
-function RXXr = EPO4_audio_record(iMeasure,f_c,f_b,c_r,code,Fs,nMicrop,nLoop,Nrp)
+function epo4_audio_measure(iMeasure,comport,f_c,f_b,c_r,code,Fs,nMicrop,nLoop,Nrp)
 %--------------------------------------------------------------------------
 % File        : audio_measure.m
 % Project     : EPO-4
@@ -24,6 +24,8 @@ function RXXr = EPO4_audio_record(iMeasure,f_c,f_b,c_r,code,Fs,nMicrop,nLoop,Nrp
 %         and corresponding parameters. e.g. iMeasure = 0, save audiodata0.mat
 %   
 
+close all;
+
 % first perform sanity checks on the input
 if ~ischar(iMeasure), error('iMeasure must be a string'); end
 if ~isnumeric(f_c), error('f_c must be an integer'); end
@@ -45,6 +47,29 @@ if ~isnumeric(Nrp), error('Nrp must be a real'); end
 % f_b = FF1(Timer1+1);
 % f_r = FF3(Timer3+1);
 
+% Open communication with car and close previous if any
+if EPOCommunications('close') == 0
+    return; % error closing previously opened port
+end
+if EPOCommunications('open',comport) == 0
+    return; % error opening new port
+end
+
+% Setup car
+EPOCommunications('transmit', 'A0');   % switch off audio beacon
+EPOCommunications('transmit', ['B' num2str(f_b,'%d')] );        % set the bit frequency
+EPOCommunications('transmit', ['F' num2str(f_c,'%d')]);       % set the carrier frequency
+EPOCommunications('transmit', ['R' num2str(c_r,'%d')]);        % set the repetition count
+EPOCommunications('transmit', ['C0x' code]);  % set the audio code
+
+% Convert hex code string into binary string
+bincode = [];
+for ii = 1:length(code),
+    symbol = code(ii);
+    bits = dec2bin(hex2dec(symbol),4);	% 4 bits for a hex symbol
+    bincode = strcat(bincode , bits);
+end
+
 % Length of data segment
 Trec = Nrp*c_r/f_b; % record data segment length
 nSamplesRec = floor(Trec*Fs); %the number of samples of the recorded data (one data segment)
@@ -58,6 +83,15 @@ RXXr = zeros(nLoop,length(a_s_p_0),nMicrop);
 % Repeatedly measure, save the measurements
 for nRun = 1:nLoop
     
+    % Can quit during the run
+    reply = input('Press q to quit, any other key to continue the measurements.\n','s');
+    if reply == 'q'
+        break;
+    end
+    
+    EPOCommunications('transmit', 'A1');   % switch on audio beacon
+    fprintf('Measurement %d\n',nRun);
+
     % Parameters for transmitting and receiving with the soundcard
     playbuffer = a_s_p_0;
     playdevice = 0;
@@ -71,17 +105,22 @@ for nRun = 1:nLoop
     % RXr: matrix which contains the signal received by each microphone, each
     % column corresponse to one microphone
     RXr = pa_wavplayrecord(playbuffer,playdevice,samplerate,recnsamples, recfirstchannel, reclastchannel,recdevice, devicetype);
+    EPOCommunications('transmit', 'A0'); % switch off audio beacon
 
     %save the raw data in the data matrix, RXXr is a 3D matrix, RXXr(N_Loop, data_segment, nMicrop)
     RXXr(nRun,:,:) = RXr;
 
     % Show the raw data
-    %for jj = 1:nMicrop        
-    %    figure(jj);
-    %    plot(RXr(:,jj));
-    %    grid on;
-    %end
+    for jj = 1:nMicrop        
+        figure(jj);
+        plot(RXr(:,jj));
+        grid on;
+    end
 end
 
 % Save all the data and parameters code,Fs,nMicrop,nLoop,Nrp 
-%save(['audiodata_' iMeasure '.mat'],'RXXr','f_b','f_c','c_r','code','Fs','nMicrop','nRun','Nrp', 'Trec','-mat');
+save(['audiodata_' iMeasure '.mat'],'RXXr','f_b','f_c','c_r','code','bincode','Fs','nMicrop','nRun','Nrp', 'Trec','-mat');
+
+% Close communication here instead of at the start of the next run
+% Reduces misery when using clear all in between runs
+EPOCommunications('close');
