@@ -4,7 +4,7 @@
 
 function afstand = TDOA(h1,h2,p)
 M1=max(h1);
-F1=find(h1==M1)
+F1=find(h1==M1);
 Ts=900;
 h11=h1(F1-Ts:F1+Ts);
 h22=h2(F1-Ts:F1+Ts);
@@ -31,7 +31,7 @@ if (2*M11 > M1)
     F1 = F11;
     M1 = M11;
 end
-scatter(F1,M1);
+% scatter(F1,M1);
 
 
 legend(p(2),p(3),'F2','F1')
