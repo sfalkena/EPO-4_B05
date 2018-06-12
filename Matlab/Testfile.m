@@ -76,5 +76,5 @@ r34 = TDOA(h(:,3),h(:,4),'r34');
 % r35 = TDOA(h(3),h(5),'r35');
 % r45 = TDOA(h(4),h(5),'r45');
 
-[x_cor,y_cor,y] = localization(r12,r13,r14,r23,r24,r34)
+[x_cor,y_cor] = localization(r12,r13,r14,r23,r24,r34)
 run loc4mic_2d
