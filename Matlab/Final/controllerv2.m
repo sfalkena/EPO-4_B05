@@ -2,12 +2,12 @@
 clear xKITT yKITT
 
 %% set simulation to '1' for offline use
-simulation = 1;
+simulation = 0;
 
 %% set initial values for KITT
-xKITT = 100;
-yKITT = 350;
-directionKITT = 130;
+xKITT = 230;
+yKITT = 230;
+directionKITT = 90;
 directionKITT = deg2rad(directionKITT); %convert to radians
 
 %% Plot the playground with microphones, targets and starting position of
@@ -20,7 +20,7 @@ ylim([-10 470])
 title('Map')
 xlabel('x coördinate')
 ylabel('y coördinate')
-Px=[150 200 400 230];
+Px=[150 260 370 230];
 Py=[150 360 200 230];
 Mx=[460 0 0 460 230];
 My=[0 0 460 460 460];
@@ -33,7 +33,7 @@ i = 1;
 k = 2;
 targets = 4;
 errorMargin = 10;
-directionMargin = deg2rad(10);
+directionMargin = deg2rad(20);
 state = 'new_target';
 reverse = 0;
 
@@ -91,11 +91,10 @@ while (1)
             
             
         case 'location' % determine location (or fake location in sim)
-            EPOCommunications('transmit','D150')
             EPOCommunications('transmit','M150')
             if (simulation == 0)
                 run Audio_Settings.m
-                RXXr = EPO4_audio_record('B5_audio', 15000,7500,2500,'ebeb9a61',48e3,5,1,3);
+                RXXr = EPO4_audio_record('B5_audio', 15000,7500,1500,'ebeb9a61',48e3,5,1,2);
                 [xKITT(k),yKITT(k)] = Testfile(RXXr); 
             else
                 xDeltaKITT = xKITT(end)-xKITT(end-1);
@@ -106,13 +105,14 @@ while (1)
             end
             plot(xKITT,yKITT,'k')
             k=k+1;
+            EPOCommunications('transmit','D150')
             state = 'direction';
             
         case 'reverse'
             reverse = 1;
             EPOCommunications('transmit','D150')
-            EPOCommunications('transmit','M145')
-            pause(1)
+            EPOCommunications('transmit','M143')
+            pause(2.5)
             EPOCommunications('transmit','M150')
             if (simulation == 1)
                 xKITT(k) = xKITT(k-1) - 50*cos(directionKITT);
@@ -133,7 +133,7 @@ while (1)
             end
             EPOCommunications('transmit','D200')
             EPOCommunications('transmit','M158')
-            pause(1)
+            pause(1.5)
             state = 'location';
             
         case 'right' % drive right for a second
@@ -143,7 +143,7 @@ while (1)
             end
             EPOCommunications('transmit','D100')
             EPOCommunications('transmit','M158')
-            pause(1)
+            pause(1.5)
             state = 'location';
             
         case 'stop' % stop and proceed to next target
