@@ -94,15 +94,17 @@ while (1)
             EPOCommunications('transmit','D150')
             EPOCommunications('transmit','M150')
             if (simulation == 0)
-                [xKITT(k),yKITT(k)] = location();
+                run Audio_Settings.m
+                RXXr = EPO4_audio_record('B5_audio', 15000,7500,2500,'ebeb9a61',48e3,5,1,3);
+                [xKITT(k),yKITT(k)] = Testfile(RXXr); 
             else
                 xDeltaKITT = xKITT(end)-xKITT(end-1);
                 yDeltaKITT = yKITT(end)-yKITT(end-1);
                 directionKITT = atan2(yDeltaKITT,xDeltaKITT);
                 xKITT(k) = xKITT(end)+20*cos(directionKITT);
                 yKITT(k) = yKITT(end)+20*sin(directionKITT);
-                plot(xKITT,yKITT,'k')
             end
+            plot(xKITT,yKITT,'k')
             k=k+1;
             state = 'direction';
             
