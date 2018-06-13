@@ -4,7 +4,8 @@ error = 1000*ones(461); % init matrix
 %% check for all x an y values (1cm resolution)
 for x = 1:461
     for y = 1:461
-        m = [460 0 0; 0 0 0; 0 460 0; 460 460 0; 230 460 0]';     % (known) locations of the mics
+              m = [460 0 24; 0 0 24; 0 460 24; 460 460 24; 230 460 54]';     % (known) locations of the mics
+
         d = zeros(1,5);
         for i = 1:5
             d(i) = sqrt((x-m(1,i))^2 + (y-m(2,i))^2 + (z-m(3,i))^2);
