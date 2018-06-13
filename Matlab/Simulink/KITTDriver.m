@@ -1,8 +1,14 @@
+%Script of EPO-4, projectgroup B-05
+%Sander Delfos, Sumeet Sharma, Sieger Falkena, Ivor Bas, Emiel van Veldhuijzen
+%May 2018
+
+%Initialize parameters
 run KITTParameters.m
+
+%Run Simulink and plot output values for acceleration curve
 F_a = F_a_max;
 F_b = 0;
 v_0 = 0;
-
 sim('KITTRacing')
 v_1 = velocityOutput.signals.values;
 d_1 = distanceOutput.signals.values;
@@ -14,6 +20,7 @@ ylabel('Velocity [m/s]')
 xlim([0,10])
 hold on
 
+%Run Simulink and plot output values for decceleration curve
 F_a = 0;
 F_b = F_b_max;
 v_0 = 12;
