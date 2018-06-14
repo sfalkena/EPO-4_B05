@@ -68,7 +68,7 @@ while (1)
             yFuture = yKITT(end)+50*sin(directionKITT);
             if (distFromTarget(k) < errorMargin)
                 state = 'stop'
-            elseif (xFuture > 450) | (xFuture < 0) | (yFuture > 450) | (yFuture <0)
+            elseif (xFuture > 460) | (xFuture < 0) | (yFuture > 460) | (yFuture <0)
                 state = 'reverse'
             elseif (distFromTarget(k) > distFromTarget(k-1)) && (reverse == 0) && (distFromTarget(k) < 140)
                 state = 'reverse'
@@ -94,8 +94,11 @@ while (1)
             EPOCommunications('transmit','M150')
             if (simulation == 0)
                 run Audio_Settings.m
-                RXXr = EPO4_audio_record('B5_audio', 15000,7500,1500,'ebeb9a61',48e3,5,1,2);
-                [xKITT(k),yKITT(k)] = Testfile(RXXr); 
+                lowestError = 99999;
+                while (lowestError > 100) %keep recording untill good reading
+                    RXXr = EPO4_audio_record('B5_audio', 15000,7500,2500,'ebeb9a61',48e3,5,1,3);
+                    [xKITT(k),yKITT(k),lowestError] = Testfile(RXXr);
+                end
             else
                 xDeltaKITT = xKITT(end)-xKITT(end-1);
                 yDeltaKITT = yKITT(end)-yKITT(end-1);

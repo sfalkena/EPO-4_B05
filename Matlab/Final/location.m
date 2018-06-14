@@ -1,4 +1,4 @@
-function [x,y] = location(r12,r13,r14,r23,r24,r34, r15, r25, r35, r45)
+function [x,y,lowestError] = location(r12,r13,r14,r23,r24,r34, r15, r25, r35, r45)
 z = 24; %asume constant
 error = 1000*ones(461); % init matrix
 %% check for all x an y values (1cm resolution)

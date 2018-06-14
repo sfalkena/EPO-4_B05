@@ -1,4 +1,4 @@
-function [x_cor,y_cor] = Testfile(data)
+function [x_cor,y_cor,lowestError] = Testfile(data)
 load('audiodata_B5.mat');         %Load data
 ref = RXXr(3,:,5);                %Load reference data
 ref = ref(2195:18196); %For B5
@@ -17,8 +17,8 @@ for i = 1:5
 %     a(i)=subplot(5, 1, mod(i-1, 5)+1) ;
 %     plot(t,RXXr(u,:,i).^2);   hold on
     %find which microphone has first significant peaks.
-    [pk,loc]=findpeaks(RXXr(u,:,i).^2,Fs,'Threshold',0.1e-4);
-    pks(i,:) = loc(1); 
+%     [pk,loc]=findpeaks(RXXr(u,:,i).^2,Fs,'Threshold',0.1e-4);
+%     pks(i,:) = loc(1); 
 %     xlabel('Time[s]');
 %     ylabel('Energy');
 %     title (['Time/energy signal of p ',num2str(u),', mic',num2str(i)])
@@ -77,6 +77,7 @@ r25 = TDOA(h(:,2),h(:,5),'r25');
 r35 = TDOA(h(:,3),h(:,5),'r35');
 r45 = TDOA(h(:,4),h(:,5),'r45');
 
-[x_cor,y_cor] = location(r12,r13,r14,r23,r24,r34,r15,r25,r35,r45);
+
+[x_cor,y_cor,lowestError] = location(r12,r13,r14,r23,r24,r34,r15,r25,r35,r45);
 % run loc4mic_2d
 end
