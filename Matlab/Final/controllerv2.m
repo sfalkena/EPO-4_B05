@@ -32,7 +32,7 @@ scatter(xKITT(1),yKITT(1),'g')
 i = 1;
 k = 2;
 targets = 4;
-errorMargin = 10;
+errorMargin = 20;
 directionMargin = deg2rad(20);
 state = 'new_target';
 reverse = 0;
@@ -45,6 +45,7 @@ while (1)
             if (i <= targets)
                 state = 'direction';
             else
+                fprintf('All targets reached, stopping now \n')
                 break
             end
             xTarget = Px(i);
@@ -66,9 +67,14 @@ while (1)
             distFromTarget(k) = sqrt((xKITT(end)-xTarget)^2+(yKITT(end)-yTarget)^2);
             xFuture = xKITT(end)+50*cos(directionKITT);
             yFuture = yKITT(end)+50*sin(directionKITT);
+            if (distFromTarget(k) < 25)
+                driveTime = 0.5;
+            else
+                driveTime = sqrt(distFromTarget(k)/100);
+            end
             if (distFromTarget(k) < errorMargin)
                 state = 'stop'
-            elseif (xFuture > 460) | (xFuture < 0) | (yFuture > 460) | (yFuture <0)
+            elseif ((xFuture > 460) | (xFuture < 0) | (yFuture > 460) | (yFuture <0)) && ((abs(directionError) > pi/4) && (abs(directionError) < 7*pi/4)) 
                 state = 'reverse'
             elseif (distFromTarget(k) > distFromTarget(k-1)) && (reverse == 0) && (distFromTarget(k) < 140)
                 state = 'reverse'
@@ -76,15 +82,31 @@ while (1)
                 state  = 'straight'
             elseif (directionError < 0)
                 if (abs(directionError) < pi)
-                    state = 'left'
+                    if (abs(directionError) < pi/4)
+                        state = 'left'
+                    else
+                        state = 'sharp_left'
+                    end
                 else
-                    state = 'right'
+                    if (directionError < 7*pi/4)
+                        state = 'right'
+                    else
+                        state = 'sharp_right'
+                    end
                 end
             elseif (directionError > 0)
                 if (abs(directionError) < pi)
-                    state = 'right'
+                    if (abs(directionError) < pi/4)
+                        state = 'right'
+                    else
+                        state = 'sharp_right'
+                    end
                 else
-                    state = 'left'
+                    if (directionError > 7*pi/4)
+                        state = 'left'
+                    else
+                        state = 'sharp_left'
+                    end
                 end
             end
             reverse = 0;
@@ -95,10 +117,17 @@ while (1)
             if (simulation == 0)
                 run Audio_Settings.m
                 lowestError = 99999;
-                while (lowestError > 100) %keep recording untill good reading
+                margin = 100;
+                a = 1;
+                while (lowestError > margin) %keep recording untill good reading
                     RXXr = EPO4_audio_record('B5_audio', 15000,7500,2500,'ebeb9a61',48e3,5,1,3);
-                    [xKITT(k),yKITT(k),lowestError] = Testfile(RXXr);
+                    [xMeasure(a),yMeasure(a),lowestError(a)] = Testfile(RXXr);
+                    margin = margin*2;
+                    a = a + 1;
                 end
+                a = find(min(lowestError),1);
+                xKITT(k) = xMeasure(a);
+                yKITT(k) = yMeasure(a);
             else
                 xDeltaKITT = xKITT(end)-xKITT(end-1);
                 yDeltaKITT = yKITT(end)-yKITT(end-1);
@@ -114,7 +143,7 @@ while (1)
         case 'reverse'
             reverse = 1;
             EPOCommunications('transmit','D150')
-            EPOCommunications('transmit','M143')
+            EPOCommunications('transmit','M142')
             pause(2.5)
             EPOCommunications('transmit','M150')
             if (simulation == 1)
@@ -126,7 +155,7 @@ while (1)
         case 'straight' % drive straight for a second
             EPOCommunications('transmit','D150')
             EPOCommunications('transmit','M158')
-            pause(1)
+            pause(driveTime)
             state = 'location';
             
         case 'left' % drive left for a second
@@ -135,8 +164,22 @@ while (1)
                 yKITT(k) = yKITT(k-1)+ 5*sin(directionKITT+pi/10);
             end
             EPOCommunications('transmit','D200')
-            EPOCommunications('transmit','M158')
-            pause(1.5)
+            EPOCommunications('transmit','M156') %to make wheels turn if not turned
+            pause(0.5)
+            EPOCommunications('transmit','M159')
+            pause(1)
+            state = 'location';
+            
+        case 'sharp_left' % drive left for a second
+            if (simulation == 1)
+                xKITT(k) = xKITT(k-1)+ 20*cos(directionKITT+pi/5);
+                yKITT(k) = yKITT(k-1)+ 20*sin(directionKITT+pi/5);
+            end
+            EPOCommunications('transmit','D200')
+            EPOCommunications('transmit','M156') %to make wheels turn if not turned
+            pause(0.5)
+            EPOCommunications('transmit','M159')
+            pause(2)
             state = 'location';
             
         case 'right' % drive right for a second
@@ -145,19 +188,36 @@ while (1)
                 yKITT(k) = yKITT(k-1)+ 5*sin(directionKITT-pi/10);
             end
             EPOCommunications('transmit','D100')
-            EPOCommunications('transmit','M158')
-            pause(1.5)
+            EPOCommunications('transmit','M156') %to make wheels turn if not turned
+            pause(0.5)
+            EPOCommunications('transmit','M159')
+            pause(1)
+            state = 'location';
+            
+        case 'sharp_right' % drive right for a second
+            if (simulation == 1)
+                xKITT(k) = xKITT(k-1)+ 20*cos(directionKITT-pi/5);
+                yKITT(k) = yKITT(k-1)+ 20*sin(directionKITT-pi/5);
+            end
+            EPOCommunications('transmit','D100')
+            EPOCommunications('transmit','M156') %to make wheels turn if not turned
+            pause(0.5)
+            EPOCommunications('transmit','M159')
+            pause(2)
             state = 'location';
             
         case 'stop' % stop and proceed to next target
             EPOCommunications('transmit','D150')
             EPOCommunications('transmit','M150')
+            EPOCommunications('transmit','A0');         %Turn off audio beacon
             beep
-            fprintf('Target reached')
             scatter(xKITT(end),yKITT(end),'o','k')
             i = i+1;
             state = 'new_target';
-            
+            fprintf('Target reached, press any button to proceed to next target \n')
+            pause
+            fprintf('Proceeding to next target \n')
+            EPOCommunications('transmit','A1');         %Turn on audio beacon
     end
 end
 
