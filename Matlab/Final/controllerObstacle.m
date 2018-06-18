@@ -20,8 +20,12 @@ ylim([-10 470])
 title('Map')
 xlabel('x coördinate')
 ylabel('y coördinate')
-Px=[150 260 370 230];
-Py=[150 360 200 230];
+% Old targets:
+% Px=[150 260 370 230];
+% Py=[150 360 200 230];
+% New targets:
+Px=[346 105 385 230];
+Py=[0   333 248 230];
 Mx=[460 0 0 460 230];
 My=[0 0 460 460 460];
 scatter(Px,Py,'r','x')
@@ -47,6 +51,7 @@ while (1)
                 state = 'direction';
             else
                 fprintf('All targets reached, stopping now \n')
+                EPOCommunications('transmit','A0');         %Turn off audio beacon               
                 break
             end
             xTarget = Px(i);
@@ -178,7 +183,7 @@ while (1)
             
         case 'straight' % drive straight for a second
             EPOCommunications('transmit','D150')
-            EPOCommunications('transmit','M158')
+            EPOCommunications('transmit','M159')
             pause(driveTime)
             state = 'location';
             
@@ -191,7 +196,7 @@ while (1)
             EPOCommunications('transmit','M156') %to make wheels turn if not turned
             pause(0.5)
             EPOCommunications('transmit','M159')
-            pause(1)
+            pause(0.7)
             state = 'location';
             
         case 'sharp_left' % drive left for a second
@@ -215,7 +220,7 @@ while (1)
             EPOCommunications('transmit','M156') %to make wheels turn if not turned
             pause(0.5)
             EPOCommunications('transmit','M159')
-            pause(1)
+            pause(0.7)
             state = 'location';
             
         case 'sharp_right' % drive right for a second
