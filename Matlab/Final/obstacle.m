@@ -2,6 +2,9 @@ function [obs, xObs, yObs] = obstacle(xKITT, yKITT, directionKITT)
 angle = deg2rad(15/2);
 [d_l, d_r] = checkDistance;
 minSensor = min(d_l,d_r);
+if (minSensor == 0)
+    minSensor = max(d_l,d_r);
+end
 if (minSensor > 100)
     obs = 0;
 elseif (abs(d_l - d_r) < 20)

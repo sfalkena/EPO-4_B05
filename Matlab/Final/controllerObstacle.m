@@ -1,5 +1,5 @@
 %% Implementation of fsm: https://drive.google.com/file/d/1n7EBoggdJZXqctVqqwDk2HfOGOQZImze/view?usp=sharing
-clear xKITT yKITT
+clear xKITT yKITT distFromTarget
 
 %% set simulation to '1' for offline use
 simulation = 1;
@@ -7,7 +7,7 @@ simulation = 1;
 %% set initial values for KITT
 xKITT = 230;
 yKITT = 0;
-directionKITT = 0;
+directionKITT = 90;
 directionKITT = deg2rad(directionKITT); %convert to radians
 
 %% Plot the playground with microphones, targets and starting position of
@@ -41,6 +41,7 @@ directionMargin = deg2rad(20);
 state = 'new_target';
 reverse = 0;
 obs = 0;
+distFromTarget = 999;
 
 %% FSM
 while (1)
@@ -83,9 +84,19 @@ while (1)
             elseif ((xFuture > 460) | (xFuture < 0) | (yFuture > 460) | (yFuture <0)) && ((abs(directionError) > pi/4) && (abs(directionError) < 7*pi/4))
                 state = 'reverse'
             elseif (obs == 1)
-                if (directionObstacle > 0)
+                if (directionObstacle == 0)
+                    directionToMid = directionKITT - atan2((230-yKITT(end)),(230-xKITT(end)));
+                    directionToMid = wrapToPi(directionToMid);
+                    if (directionToMid > 0)
+                        state = 'right'
+                    elseif (directionToMid < 0)
+                        state = 'left'
+                    else
+                        state = 'straight'
+                    end
+                elseif (directionObstacle > 0)
                     state = 'left'
-                else
+                elseif (directionObstacle < 0)
                     state = 'right'
                 end
             elseif (distFromTarget(k) > distFromTarget(k-1)) && (reverse == 0) && (distFromTarget(k) < 70)
@@ -153,12 +164,13 @@ while (1)
                 if (obs == 1)
                     scatter(xObs, yObs, '*')
                     directionObstacle = directionKITT - atan2((yObs-yKITT(end)),(xObs-xKITT(end)));
-                    %                 distanceToObstacle = sqrt((xKITT-xObsSave)^2+(yKITT-yObsSave)^2);
+                    directionObstacle = wrapToPi(directionObstacle);                    
                 end
             else
-                xObs = 200;
-                yObs = 150;
-                directionObstacle = directionKITT - atan2((yObs-yKITT(end)),(xObs-xKITT(end)))
+                xObs = 300;
+                yObs = 50;
+                directionObstacle = directionKITT - atan2((yObs-yKITT(end)),(xObs-xKITT(end)));
+                directionObstacle = wrapToPi(directionObstacle); 
                 if (abs(directionObstacle) < pi/2) & (sqrt((xKITT(end)-xObs)^2+(yKITT(end)-yObs)^2) < 100)
                     obs = 1;
                     scatter(xObs, yObs, '*')
@@ -185,6 +197,10 @@ while (1)
             EPOCommunications('transmit','D150')
             EPOCommunications('transmit','M159')
             pause(driveTime)
+            if (simulation == 1)
+                xKITT(k) = xKITT(k-1) + 2*driveTime*cos(directionKITT);
+                yKITT(k) = yKITT(k-1) + 2*driveTime*sin(directionKITT);
+            end
             state = 'location';
             
         case 'left' % drive left for a second
