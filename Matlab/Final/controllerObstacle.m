@@ -1,11 +1,12 @@
 %% Implementation of fsm: https://drive.google.com/file/d/1n7EBoggdJZXqctVqqwDk2HfOGOQZImze/view?usp=sharing
-clear xKITT yKITT distFromTarget
-
+clear xKITT yKITT distFromTarget targets
+close all
 %% set simulation to '1' for offline use
-simulation = 1;
+simulation = 0;
 
 %% set initial values for KITT
-xKITT = 230;
+task = 3;
+xKITT = 346;
 yKITT = 0;
 directionKITT = 90;
 directionKITT = deg2rad(directionKITT); %convert to radians
@@ -20,14 +21,43 @@ ylim([-10 470])
 title('Map')
 xlabel('x coördinate')
 ylabel('y coördinate')
+
 % Old targets:
 % Px=[150 260 370 230];
 % Py=[150 360 200 230];
 % New targets:
-Px=[346 105 385 230];
-Py=[0   333 248 230];
+% Px=[346 105 385 230];
+% Py=[0   333 248 230];
+Px=[105];
+Py=[333];
 Mx=[460 0 0 460 230];
 My=[0 0 460 460 460];
+
+switch task
+    case 0
+        
+    case 1
+        Px=[105];
+        Py=[333];
+        xKITT = 346;
+        yKITT = 0;
+        obsDetection = 0;
+        
+    case 2
+        Px=[385 105];
+        Py=[248 333];
+        xKITT = 346;
+        yKITT = 0;
+        obsDetection = 0;
+        
+    case 3
+        Px=[385 105];
+        Py=[248 333];
+        xKITT = 346;
+        yKITT = 0;
+        obsDetection = 1;
+end
+    
 scatter(Px,Py,'r','x')
 scatter(Mx,My,'b')
 scatter(xKITT(1),yKITT(1),'g')
@@ -35,8 +65,8 @@ scatter(xKITT(1),yKITT(1),'g')
 %% Initialize variables used in FSM
 i = 1;
 k = 2;
-targets = 4;
-errorMargin = 20;
+targets = length(Px);
+errorMargin = 25;
 directionMargin = deg2rad(20);
 state = 'new_target';
 reverse = 0;
@@ -70,67 +100,56 @@ while (1)
             xDeltaTarget = xTarget-xKITT(end);
             yDeltaTarget = yTarget-yKITT(end);
             directionTarget = atan2(yDeltaTarget,xDeltaTarget);
-            directionError = mod(directionKITT - directionTarget,2*pi);
+            directionError = wrapToPi(mod(directionKITT - directionTarget,2*pi));
             distFromTarget(k) = sqrt((xKITT(end)-xTarget)^2+(yKITT(end)-yTarget)^2);
             xFuture = xKITT(end)+50*cos(directionKITT);
             yFuture = yKITT(end)+50*sin(directionKITT);
             if (distFromTarget(k) < 25)
                 driveTime = 0.5;
             else
-                driveTime = sqrt(distFromTarget(k)/100);
+                if (obsDetection == 0)
+                    driveTime = sqrt(distFromTarget(k)/100);
+                else
+                    driveTime = 1;
+                end
             end
             if (distFromTarget(k) < errorMargin)
                 state = 'stop'
             elseif ((xFuture > 460) | (xFuture < 0) | (yFuture > 460) | (yFuture <0)) && ((abs(directionError) > pi/4) && (abs(directionError) < 7*pi/4))
                 state = 'reverse'
-            elseif (obs == 1)
+            elseif (obs == 1) & (obsDetection == 1)
                 if (directionObstacle == 0)
                     directionToMid = directionKITT - atan2((230-yKITT(end)),(230-xKITT(end)));
                     directionToMid = wrapToPi(directionToMid);
                     if (directionToMid > 0)
-                        state = 'right'
+                        state = 'reverse_left'
                     elseif (directionToMid < 0)
-                        state = 'left'
+                        state = 'reverse_right'
                     else
                         state = 'straight'
                     end
                 elseif (directionObstacle > 0)
-                    state = 'left'
+                    state = 'reverse_right'
                 elseif (directionObstacle < 0)
-                    state = 'right'
+                    state = 'reverse_left'
                 end
             elseif (distFromTarget(k) > distFromTarget(k-1)) && (reverse == 0) && (distFromTarget(k) < 70)
                 state = 'reverse'
             elseif (abs(directionError) < directionMargin)
                 state  = 'straight'
             elseif (directionError < 0)
-                if (abs(directionError) < pi)
-                    if (abs(directionError) < pi/4)
+                    if (abs(directionError) < pi/4) | (obsDetection == 1)
                         state = 'left'
                     else
                         state = 'sharp_left'
                     end
-                else
-                    if (directionError < 7*pi/4)
-                        state = 'right'
-                    else
-                        state = 'sharp_right'
-                    end
-                end
+
             elseif (directionError > 0)
-                if (abs(directionError) < pi)
-                    if (abs(directionError) < pi/4)
+                    if (abs(directionError) < pi/4) | (obsDetection == 1)
                         state = 'right'
                     else
                         state = 'sharp_right'
                     end
-                else
-                    if (directionError > 7*pi/4)
-                        state = 'left'
-                    else
-                        state = 'sharp_left'
-                    end
-                end
             end
             reverse = 0;
             
@@ -141,7 +160,7 @@ while (1)
             if (simulation == 0)
                 run Audio_Settings.m
                 lowestError = 99999;
-                margin = 100;
+                margin = 400;
                 a = 1;
                 while (lowestError > margin) %keep recording untill good reading
                     RXXr = EPO4_audio_record('B5_audio', 15000,7500,2500,'ebeb9a61',48e3,5,1,3);
@@ -180,6 +199,26 @@ while (1)
             k=k+1;
             EPOCommunications('transmit','D150')
             state = 'direction';
+             
+        case 'reverse_left'
+            EPOCommunications('transmit','D200')
+            EPOCommunications('transmit','M140')
+            pause(1)
+            if (simulation == 1)
+                xKITT(k) = xKITT(k-1) - 10*cos(directionKITT+pi/10);
+                yKITT(k) = yKITT(k-1) - 10*sin(directionKITT+pi/10);
+            end
+            state = 'sharp_right'
+            
+        case 'reverse_right'
+            EPOCommunications('transmit','D100')
+            EPOCommunications('transmit','M140')
+            pause(1)
+            if (simulation == 1)
+                xKITT(k) = xKITT(k-1) - 50*cos(directionKITT-pi/10);
+                yKITT(k) = yKITT(k-1) - 50*sin(directionKITT-pi/10);
+            end
+            state = 'sharp_left'
             
         case 'reverse'
             reverse = 1;
@@ -198,8 +237,8 @@ while (1)
             EPOCommunications('transmit','M159')
             pause(driveTime)
             if (simulation == 1)
-                xKITT(k) = xKITT(k-1) + 2*driveTime*cos(directionKITT);
-                yKITT(k) = yKITT(k-1) + 2*driveTime*sin(directionKITT);
+                xKITT(k) = xKITT(k-1) + 25*driveTime*cos(directionKITT);
+                yKITT(k) = yKITT(k-1) + 25*driveTime*sin(directionKITT);
             end
             state = 'location';
             
@@ -211,7 +250,7 @@ while (1)
             EPOCommunications('transmit','D200')
             EPOCommunications('transmit','M156') %to make wheels turn if not turned
             pause(0.5)
-            EPOCommunications('transmit','M159')
+            EPOCommunications('transmit','M160')
             pause(0.7)
             state = 'location';
             
@@ -235,7 +274,7 @@ while (1)
             EPOCommunications('transmit','D100')
             EPOCommunications('transmit','M156') %to make wheels turn if not turned
             pause(0.5)
-            EPOCommunications('transmit','M159')
+            EPOCommunications('transmit','M160')
             pause(0.7)
             state = 'location';
             
