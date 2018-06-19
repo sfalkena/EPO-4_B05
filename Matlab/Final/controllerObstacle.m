@@ -19,8 +19,8 @@ hold on
 xlim([-10 470])
 ylim([-10 470])
 title('Map')
-xlabel('x coördinate')
-ylabel('y coördinate')
+xlabel('x co?rdinate')
+ylabel('y co?rdinate')
 
 % Old targets:
 % Px=[150 260 370 230];
@@ -293,7 +293,7 @@ while (1)
         case 'stop' % stop and proceed to next target
             EPOCommunications('transmit','D150')
             EPOCommunications('transmit','M150')
-            EPOCommunications('transmit','A0');         %Turn off audio beacon
+            run Victorysound.m         %Turn off audio beacon
             beep
             scatter(xKITT(end),yKITT(end),'o','k')
             i = i+1;
