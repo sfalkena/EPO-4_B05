@@ -1,3 +1,7 @@
+%Script of EPO-4, projectgroup B-05
+%Sander Delfos, Sumeet Sharma, Sieger Falkena, Ivor Bas, Emiel van Veldhuijzen
+%June 2018
+
 function [x,y,lowestError] = location(r12,r13,r14,r23,r24,r34, r15, r25, r35, r45)
 z = 24; %asume constant
 error = 1000*ones(461); % init matrix

@@ -1,8 +1,15 @@
+%Script of EPO-4, projectgroup B-05
+%Sander Delfos, Sumeet Sharma, Sieger Falkena, Ivor Bas, Emiel van Veldhuijzen
+%June 2018
+
+%This function calculates all channel responses and executes the TDOA and
+%localisation measurement. This is also used for debugging and plotting
+%purposes.
 function [x_cor,y_cor,lowestError] = Testfile(data)
 load('audiodata_B5.mat');                                           %Load data
 ref = RXXr(3,:,5);                                                  %Load reference data
 ref = ref(2195:18196);                                              %For audiodata_B5
-% load('audiodata_B5_a.mat');                                         %Recorded at location A (for simulation)
+% load('audiodata_B5_a.mat');                                       %Recorded at location A (for simulation)
 RXXr = data;                                                      
 Fs=48000;
 RepFr = 3; %Repetition frequency

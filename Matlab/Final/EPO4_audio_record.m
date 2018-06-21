@@ -1,3 +1,7 @@
+%Code provided by TU Delft, edited by:
+%Sander Delfos, Sumeet Sharma, Sieger Falkena, Ivor Bas, Emiel van Veldhuijzen
+%June 2018
+
 function RXXr = EPO4_audio_record(iMeasure,f_c,f_b,c_r,code,Fs,nMicrop,nLoop,Nrp)
 %--------------------------------------------------------------------------
 % File        : audio_measure.m

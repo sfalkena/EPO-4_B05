@@ -1,3 +1,7 @@
+%Script of EPO-4, projectgroup B-05
+%Sander Delfos, Sumeet Sharma, Sieger Falkena, Ivor Bas, Emiel van Veldhuijzen
+%June 2018
+
 %% Implementation of fsm: https://drive.google.com/file/d/1n7EBoggdJZXqctVqqwDk2HfOGOQZImze/view?usp=sharing
 clear xKITT yKITT distFromTarget targets
 close all
@@ -33,6 +37,7 @@ Py=[333];
 Mx=[460 0 0 460 230];
 My=[0 0 460 460 460];
 
+%Choose which challenge to start
 switch task
     case 0
         
@@ -43,7 +48,7 @@ switch task
         yKITT = 0;
         obsDetection = 0;
         
-    case 2
+    case 2              
         Px=[385 105];
         Py=[248 333];
         xKITT = 346;
@@ -57,7 +62,8 @@ switch task
         yKITT = 0;
         obsDetection = 1;
 end
-    
+
+%Plot starting point, microphones and targets
 scatter(Px,Py,'r','x')
 scatter(Mx,My,'b')
 scatter(xKITT(1),yKITT(1),'g')
@@ -66,7 +72,7 @@ scatter(xKITT(1),yKITT(1),'g')
 i = 1;
 k = 2;
 targets = length(Px);
-errorMargin = 25;
+errorMargin = 25;                                                       %Distance from target that KITT stops
 directionMargin = deg2rad(20);
 state = 'new_target';
 reverse = 0;
@@ -202,7 +208,7 @@ while (1)
             EPOCommunications('transmit','D150')
             state = 'direction';
              
-        case 'reverse_left'
+        case 'reverse_left' %when obstacle is seen on right side
             EPOCommunications('transmit','D200')
             EPOCommunications('transmit','M140')
             pause(1)
@@ -212,7 +218,7 @@ while (1)
             end
             state = 'sharp_right'
             
-        case 'reverse_right'
+        case 'reverse_right' %when obstacle is seen on left side
             EPOCommunications('transmit','D100')
             EPOCommunications('transmit','M140')
             pause(1)
@@ -234,7 +240,7 @@ while (1)
             end
             state = 'location';
             
-        case 'straight' % drive straight for a second
+        case 'straight' % drive straight for a variable amount of time
             EPOCommunications('transmit','D150')
             EPOCommunications('transmit','M159')
             pause(driveTime)

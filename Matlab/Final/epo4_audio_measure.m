@@ -1,3 +1,6 @@
+%Code provided by TU Delft
+%This code is used to record reference measurements.
+
 function epo4_audio_measure(iMeasure,comport,f_c,f_b,c_r,code,Fs,nMicrop,nLoop,Nrp)
 %--------------------------------------------------------------------------
 % File        : audio_measure.m
