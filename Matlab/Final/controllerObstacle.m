@@ -51,8 +51,8 @@ switch task
         obsDetection = 0;
         
     case 3
-        Px=[385 105];
-        Py=[248 333];
+        Px=[105];
+        Py=[333];
         xKITT = 346;
         yKITT = 0;
         obsDetection = 1;
@@ -179,12 +179,14 @@ while (1)
                 yKITT(k) = yKITT(end)+20*sin(directionKITT);
             end
             if (simulation == 0)
+                 EPOCommunications('transmit','A0'); 
                 [obs, xObs, yObs] = obstacle(xKITT(end), yKITT(end), directionKITT);
                 if (obs == 1)
                     scatter(xObs, yObs, '*')
                     directionObstacle = directionKITT - atan2((yObs-yKITT(end)),(xObs-xKITT(end)));
                     directionObstacle = wrapToPi(directionObstacle);                    
                 end
+                EPOCommunications('transmit','A1'); 
             else
                 xObs = 300;
                 yObs = 50;
@@ -250,7 +252,7 @@ while (1)
             EPOCommunications('transmit','D200')
             EPOCommunications('transmit','M156') %to make wheels turn if not turned
             pause(0.5)
-            EPOCommunications('transmit','M160')
+            EPOCommunications('transmit','M162')
             pause(0.7)
             state = 'location';
             
@@ -263,7 +265,7 @@ while (1)
             EPOCommunications('transmit','M156') %to make wheels turn if not turned
             pause(0.5)
             EPOCommunications('transmit','M159')
-            pause(2)
+            pause(1.5)
             state = 'location';
             
         case 'right' % drive right for a second
@@ -274,7 +276,7 @@ while (1)
             EPOCommunications('transmit','D100')
             EPOCommunications('transmit','M156') %to make wheels turn if not turned
             pause(0.5)
-            EPOCommunications('transmit','M160')
+            EPOCommunications('transmit','M162')
             pause(0.7)
             state = 'location';
             
@@ -287,21 +289,21 @@ while (1)
             EPOCommunications('transmit','M156') %to make wheels turn if not turned
             pause(0.5)
             EPOCommunications('transmit','M159')
-            pause(2)
+            pause(1.5)
             state = 'location';
             
         case 'stop' % stop and proceed to next target
             EPOCommunications('transmit','D150')
             EPOCommunications('transmit','M150')
-            run Victorysound.m         %Turn off audio beacon
             beep
             scatter(xKITT(end),yKITT(end),'o','k')
             i = i+1;
             state = 'new_target';
             fprintf('Target reached, press any button to proceed to next target \n')
+            EPOCommunications('transmit','A0');         %Turn on audio beacon
             pause
             fprintf('Proceeding to next target \n')
-            EPOCommunications('transmit','A1');         %Turn on audio beacon
+
     end
 end
 
