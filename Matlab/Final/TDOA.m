@@ -3,18 +3,18 @@
 % - Sieger Falkena: 4293681
 
 function afstand = TDOA(h1,h2,p)
-Ts=900;
+Ts=900;                                             %Search interval
 % M1=max(h1);
 M1=max(h1(Ts+1:end-Ts-1));
 F1=find(h1==M1);
 h11=h1(F1-Ts:F1+Ts);
-h22=h2(F1-Ts:F1+Ts);
+h22=h2(F1-Ts:F1+Ts);                                %Take h2 in same interval as h1
 
 M2=max(h22);
 F2=find(h22==M2);
 M22=max(h22(1:Ts-10));
 F22=find(h22==M22);
-if (2*M22 > M2)
+if (2*M22 > M2)                                     %Find fist significant peak
     F2 = F22;
     M2 = M22;
 end
@@ -30,10 +30,11 @@ if (2*M11 > M1)
 end
 
 
-Diff=F1-F2; %Aantal samples verschil
+Diff=F1-F2;                                     %Calculate amount of samples different
 Tijd=Diff/48000;
 afstand=Tijd*34300;
 
+%Plot all impulse responses, together with the discovered peaks used.
 % figure
 % plot(h11)
 % hold on
